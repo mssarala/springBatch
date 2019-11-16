@@ -17,7 +17,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
         Transaction transaction = new Transaction();
         transaction.setAccount(resultSet.getString(ACCOUNT_COLUMN));
         transaction.setAmount(resultSet.getBigDecimal(AMOUNT_COLUMN));
-        transaction.setTimeStamp(resultSet.getTimestamp(TIMESTAMP_COLUMN));
+        transaction.setTimestamp(resultSet.getTimestamp(TIMESTAMP_COLUMN));
         return transaction;
     }
 }
