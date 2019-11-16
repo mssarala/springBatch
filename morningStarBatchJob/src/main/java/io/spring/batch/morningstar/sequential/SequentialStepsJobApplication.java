@@ -1,5 +1,6 @@
 package io.spring.batch.morningstar.sequential;
 
+import io.spring.batch.morningstar.config.DataSourceConfiguration;
 import io.spring.batch.morningstar.domain.Transaction;
 import io.spring.batch.morningstar.mapper.TransactionRowMapper;
 import io.spring.batch.morningstar.tasklet.UnzipTasklet;
@@ -18,10 +19,12 @@ import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.support.CompositeItemWriter;
 import org.springframework.batch.item.xml.StaxEventItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -37,6 +40,7 @@ import java.util.Date;
  */
 @EnableBatchProcessing
 @SpringBootApplication
+@Import({ DataSourceConfiguration.class})
 public class SequentialStepsJobApplication {
 
 	@Value("${fileName}")
@@ -113,7 +117,7 @@ public class SequentialStepsJobApplication {
 	}
 
 	@Bean
-	public JdbcBatchItemWriter<Transaction> writer(DataSource dataSource) {
+	public JdbcBatchItemWriter<Transaction> writer(@Qualifier("batchDataSource")DataSource dataSource) {
 		return new JdbcBatchItemWriterBuilder<Transaction>()
 				.dataSource(dataSource)
 				.beanMapped()
@@ -122,7 +126,7 @@ public class SequentialStepsJobApplication {
 	}
 
 	@Bean
-	public JdbcCursorItemReader<Transaction> itemReader(DataSource dataSource) {
+	public JdbcCursorItemReader<Transaction> itemReader(@Qualifier("batchDataSource")DataSource dataSource) {
 		return new JdbcCursorItemReaderBuilder<Transaction>()
 				.dataSource(dataSource)
 				.name("transactionReader")
@@ -132,7 +136,7 @@ public class SequentialStepsJobApplication {
 	}
 
 	@Bean
-	public CompositeItemWriter<Transaction> compositeItemWriter(DataSource dataSource) {
+	public CompositeItemWriter<Transaction> compositeItemWriter(@Qualifier("mainDataSource")DataSource dataSource) {
 		CompositeItemWriter<Transaction> compositeItemWriter = new CompositeItemWriter<>();
 		compositeItemWriter.setDelegates(Arrays.asList(writerOne(dataSource), writerTwo(dataSource)));
 		return compositeItemWriter;
@@ -140,7 +144,7 @@ public class SequentialStepsJobApplication {
 
 
 	@Bean
-	public JdbcBatchItemWriter<Transaction> writerOne(DataSource dataSource) {
+	public JdbcBatchItemWriter<Transaction> writerOne(@Qualifier("mainDataSource")DataSource dataSource) {
 		return new JdbcBatchItemWriterBuilder<Transaction>()
 				.dataSource(dataSource)
 				.beanMapped()
@@ -149,7 +153,7 @@ public class SequentialStepsJobApplication {
 	}
 
 	@Bean
-	public JdbcBatchItemWriter<Transaction> writerTwo(DataSource dataSource) {
+	public JdbcBatchItemWriter<Transaction> writerTwo(@Qualifier("mainDataSource")DataSource dataSource) {
 		return new JdbcBatchItemWriterBuilder<Transaction>()
 				.dataSource(dataSource)
 				.beanMapped()
